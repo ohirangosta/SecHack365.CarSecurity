@@ -145,7 +145,7 @@ char *Composejson (float speed, float rpm, float bandwidth, double latitude, dou
 	struct timespec ts;
 	clock_gettime(CLOCK_REALTIME, &ts);
 	jsonbuffer = (char *)malloc(sizeof(char)*1024);
-	sprintf(jsonbuffer, "{\"vehicleId\":\"%s\",\"status\":\"IGOFF\",\"speed\":%1.0f,\"rpm\":%1.0f,\"bandwidth\":%1.1f,\"GPS\":{\"lat\":%lf,\"lon\":%lf}}", vehicle_id, speed, rpm, bandwidth, latitude, longitude);
+	sprintf(jsonbuffer, "{\"vehicleId\":\"%s\",\"status\":\"IGOFF\",\"speed\":%1.0f,\"rpm\":%1.0f,\"bandwidth\":%1.3f,\"GPS\":{\"lat\":%lf,\"lon\":%lf}}", vehicle_id, speed, rpm, bandwidth, latitude, longitude);
 	return jsonbuffer;
 }
 
@@ -386,6 +386,7 @@ int main(void)
 					printf("[main]  :%s\n", jsondata);
 					sendto(sock_ppp, jsondata, strlen(jsondata), 0, (struct sockaddr *)&dest, sizeof(dest));
 					sendwait_count = 0;
+					free(jsondata);
 				}//JSON send END
 			}
 			out_fflush:
