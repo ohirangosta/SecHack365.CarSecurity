@@ -44,6 +44,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <pthread.h>
+#include <math.h>
 
 #include "gps_module.h"
 extern gps_t gps;
@@ -103,8 +104,9 @@ char *vehicle_id = "Alphard";
 #define ANALAZE_PAY2_E 4
 #define ANALAZE_PAY2_B 0.1
 #endif
+
 #ifdef CF
-char *vehicle_id = "Carrolla Fielder";
+char *vehicle_id = "Carrolla_Fielder";
 //Carrolla Vehicle Speed
 #define ANALAZE_CANID1 "0B4"
 #define ANALAZE_PAY1_S 10
@@ -117,11 +119,12 @@ char *vehicle_id = "Carrolla Fielder";
 #define ANALAZE_PAY2_E 4
 #define ANALAZE_PAY2_B 1.0
 #endif
+
 #ifdef TA
-char *vehicle_id = "Toyota Aqua";
+char *vehicle_id = "Toyota_Aqua";
 //Aqua Vehicle Speed
 #define ANALAZE_CANID1 "0B4"
-#define ANALAZE_PAY1_S 0
+#define ANALAZE_PAY1_S 10
 #define ANALAZE_PAY1_E 4
 #define ANALAZE_PAY1_B 0.01
 
@@ -130,22 +133,43 @@ char *vehicle_id = "Toyota Aqua";
 #define ANALAZE_PAY2_S 0
 #define ANALAZE_PAY2_E 4
 #define ANALAZE_PAY2_B 1.0
+
+//Aqua Steering Angle
+#define ANALAZE_CANID3 "025"
+#define ANALAZE_PAY3_S 1
+#define ANALAZE_PAY3_E 3
+#define ANALAZE_PAY3_B 1.406
+
+//Aqua Brake Info
+#define ANALAZE_CANID4 "224"
+#define ANALAZE_PAY4_S 9
+#define ANALAZE_PAY4_E 3
+#define ANALAZE_PAY4_B 1.0
 #endif
 
 //CAN width for Band Width
 #define CAN_WIDTH 500000
 
+#define DEG_MAX 5757.569824
+#define DEG_MAX2 2899.172119
 float global_speed;
 float global_rpm;
+int global_BrakeState;
+float global_BrakePressRate;
+struct timespec global_LastBrakeTime;
+struct timespec global_LastStopTime;
+struct timespec global_LastStr40TimeR;
+struct timespec global_LastStr40TimeL;
+struct timespec global_LastStrCenterTime;
+float  global_StrAngle;
 double global_latitude;
 double global_longitude;
 
 //Compose JSON Format
 char *Composejson (float speed, float rpm, float bandwidth, double latitude, double longitude, char *jsonbuffer) {
-	struct timespec ts;
-	clock_gettime(CLOCK_REALTIME, &ts);
 	jsonbuffer = (char *)malloc(sizeof(char)*1024);
-	sprintf(jsonbuffer, "{\"vehicleId\":\"%s\",\"status\":\"IGOFF\",\"speed\":%1.0f,\"rpm\":%1.0f,\"bandwidth\":%1.3f,\"GPS\":{\"lat\":%lf,\"lon\":%lf}}", vehicle_id, speed, rpm, bandwidth, latitude, longitude);
+	sprintf(jsonbuffer, "{\"vehicleId\":\"%s\",\"status\":\"IGOFF\",\"speed\":%1.0f,\"rpm\":%1.0f,\"bandwidth\":%1.3f,\"GPS\":{\"lat\":%lf,\"lon\":%lf},\"LastBrakeTime\":%ld.%09ld,\"LastStopTime\":%ld.%09ld,\"LastStr40TimeR\":%ld.%09ld,\"LastStr40TimeL\":%ld.%09ld,\"LastStrCenterTime\":%ld.%09ld,\"StrAngle\":%1.3f}", \
+			vehicle_id, speed, rpm, bandwidth, latitude, longitude, global_LastBrakeTime.tv_sec, global_LastBrakeTime.tv_nsec, global_LastStopTime.tv_sec, global_LastStopTime.tv_nsec, global_LastStr40TimeR.tv_sec, global_LastStr40TimeR.tv_nsec, global_LastStr40TimeL.tv_sec, global_LastStr40TimeL.tv_nsec, global_LastStrCenterTime.tv_sec, global_LastStrCenterTime.tv_nsec, global_StrAngle);
 	return jsonbuffer;
 }
 
@@ -163,19 +187,22 @@ char *Createjsondata (float bandwidth, char *ret_json) {
 	return ret_json;
 }
 
-void Gbl_speed_update(char *can_payload){
+void Global_speed_update(char *can_payload){
 	char buf[500], can_ExtractCharData[20];
 	int temp;
 	strncpy(buf, can_payload + ANALAZE_PAY1_S, ANALAZE_PAY1_E);
 	sscanf(buf, "%x", &temp);
 	sprintf(can_ExtractCharData, "%d", temp);
 	global_speed = atof(can_ExtractCharData) * ANALAZE_PAY1_B;
+	if ((int)global_speed==0) {
+		clock_gettime(CLOCK_REALTIME, &global_LastStopTime);
+	}
 #ifdef DEBAG
-	//printf("[main]  :update speed:%lf[km/h]\n", global_speed);
+	//printf("[main]  :update speed:%lf\n", global_speed);
 #endif
 }
 
-void Gbl_rpm_update(char *can_payload){
+void Global_rpm_update(char *can_payload){
 	char buf[500], can_ExtractCharData[20];
 	int temp;
 	strncpy(buf, can_payload + ANALAZE_PAY2_S, ANALAZE_PAY2_E);
@@ -184,6 +211,51 @@ void Gbl_rpm_update(char *can_payload){
 	global_rpm = atof(can_ExtractCharData) * ANALAZE_PAY2_B;
 #ifdef DEBAG
 	//printf("[main]  :update rpm:%lf\n", global_rpm);
+#endif
+}
+
+void Global_LastStrTime_update(char *can_payload){
+	char buf[500], can_ExtractCharData[20];
+	int temp;
+	strncpy(buf, can_payload + ANALAZE_PAY3_S, ANALAZE_PAY3_E);
+	sscanf(buf, "%x", &temp);
+	temp /= 16;
+	sprintf(can_ExtractCharData, "%d", temp);
+	global_StrAngle = atof(can_ExtractCharData) * ANALAZE_PAY3_B;
+	if (fabs(DEG_MAX-global_StrAngle) < 360) {
+		global_StrAngle = global_StrAngle - DEG_MAX;
+	} else if (fabs(DEG_MAX2-global_StrAngle < 360)) {
+		global_StrAngle = global_StrAngle - DEG_MAX2;
+	}
+		//printf("[Angle]		%lf\n", global_StrAngle);
+	if (global_StrAngle >= 40) {
+		clock_gettime(CLOCK_REALTIME, &global_LastStr40TimeL);
+	} else if (global_StrAngle <= -40) {
+		clock_gettime(CLOCK_REALTIME, &global_LastStr40TimeR);
+	} else {
+		clock_gettime(CLOCK_REALTIME, &global_LastStrCenterTime);
+	}
+#ifdef DEBAG
+	//printf("[main]  :update Steering Angle:%lf[degree] RAW:%s\n", global_LastStrTime, buf);
+#endif
+}
+
+void Global_brake_update(char *can_payload){
+	char buf[500], can_ExtractCharData[20];
+	int temp;
+	strncpy(buf, can_payload + ANALAZE_PAY4_S, ANALAZE_PAY4_E);
+	sscanf(buf, "%x", &temp);
+	temp /= 16;
+	sprintf(can_ExtractCharData, "%d", temp);
+	global_BrakePressRate = atof(can_ExtractCharData) * ANALAZE_PAY4_B;
+	if (can_payload[0]=='2') {
+		global_BrakeState = 1;
+		clock_gettime(CLOCK_REALTIME, &global_LastBrakeTime);
+	} else {
+		global_BrakeState = 0;
+	}
+#ifdef DEBAG
+	//printf("[main]  :update BrakeState:%d[degree] PressRate:%lf[%] RAW:%s\n", global_BrakeState, global_BrakePressRate, buf);
 #endif
 }
 
@@ -208,12 +280,10 @@ int main(void)
 	int currmax, numfilter;
 	char *ptr, *nptr;
 	struct sockaddr_can addr,addr2;
-	//===========================
 	int sock_ppp,sock_can;
  	struct sockaddr_in dest,addr1;
 	char buf[1024],bufframe[1024];
 	int maxfd;
-	//===========================
 	char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
 	struct iovec iov;
 	struct msghdr msg;
@@ -375,13 +445,17 @@ int main(void)
 				can_id = strtok(bufframe, "#");
 				can_payload = strtok(NULL, "#");
 				if (!strcmp(can_id, ANALAZE_CANID1)) {
-					Gbl_speed_update(can_payload);
+					Global_speed_update(can_payload);
 				} else if (!strcmp(can_id, ANALAZE_CANID2)) {
-					Gbl_rpm_update(can_payload);
+					Global_rpm_update(can_payload);
+				} else if (!strcmp(can_id, ANALAZE_CANID3)) {
+					Global_LastStrTime_update(can_payload);
+				} else if (!strcmp(can_id, ANALAZE_CANID4)) {
+					Global_brake_update(can_payload);
 				}//CAN packet Analaze END
 
 				//JSON send
-				if (sendwait_count >= 10) {
+				if (sendwait_count >= 3) {
 					jsondata = Createjsondata(bandwidth, bufframe);
 					printf("[main]  :%s\n", jsondata);
 					sendto(sock_ppp, jsondata, strlen(jsondata), 0, (struct sockaddr *)&dest, sizeof(dest));
