@@ -168,8 +168,17 @@ double global_longitude;
 //Compose JSON Format
 char *Composejson (float speed, float rpm, float bandwidth, double latitude, double longitude, char *jsonbuffer) {
 	jsonbuffer = (char *)malloc(sizeof(char)*1024);
+<<<<<<< HEAD
 	sprintf(jsonbuffer, "{\"vehicleId\":\"%s\",\"status\":\"IGOFF\",\"speed\":%1.0f,\"rpm\":%1.0f,\"bandwidth\":%1.3f,\"GPS\":{\"lat\":%lf,\"lon\":%lf},\"LastBrakeTime\":%ld.%09ld,\"LastStopTime\":%ld.%09ld,\"LastStr40TimeR\":%ld.%09ld,\"LastStr40TimeL\":%ld.%09ld,\"LastStrCenterTime\":%ld.%09ld,\"StrAngle\":%1.3f}", \
 			vehicle_id, speed, rpm, bandwidth, latitude, longitude, global_LastBrakeTime.tv_sec, global_LastBrakeTime.tv_nsec, global_LastStopTime.tv_sec, global_LastStopTime.tv_nsec, global_LastStr40TimeR.tv_sec, global_LastStr40TimeR.tv_nsec, global_LastStr40TimeL.tv_sec, global_LastStr40TimeL.tv_nsec, global_LastStrCenterTime.tv_sec, global_LastStrCenterTime.tv_nsec, global_StrAngle);
+=======
+<<<<<<< HEAD
+	sprintf(jsonbuffer, "{\"vehicleId\":\"%s\",\"status\":\"IGOFF\",\"speed\":%1.0f,\"rpm\":%1.0f,\"bandwidth\":%1.3f,\"GPS\":{\"lat\":%lf,\"lon\":%lf},\"LastBrakeTime\":%ld.%09ld,\"LastStopTime\":%ld.%09ld,\"LastStr40TimeR\":%ld.%09ld,\"LastStr40TimeL\":%ld.%09ld,\"LastStrCenterTime\":%ld.%09ld,\"StrAngle\":%1.3f}", \
+			vehicle_id, speed, rpm, bandwidth, latitude, longitude, global_LastBrakeTime.tv_sec, global_LastBrakeTime.tv_nsec, global_LastStopTime.tv_sec, global_LastStopTime.tv_nsec, global_LastStr40TimeR.tv_sec, global_LastStr40TimeR.tv_nsec, global_LastStr40TimeL.tv_sec, global_LastStr40TimeL.tv_nsec, global_LastStrCenterTime.tv_sec, global_LastStrCenterTime.tv_nsec, global_StrAngle);
+=======
+	sprintf(jsonbuffer, "{\"vehicleId\":\"%s\",\"status\":\"IGOFF\",\"speed\":%1.0f,\"rpm\":%1.0f,\"bandwidth\":%1.3f,\"GPS\":{\"lat\":%lf,\"lon\":%lf}}", vehicle_id, speed, rpm, bandwidth, latitude, longitude);
+>>>>>>> 8829ff285da74a8544cceacb35962922ffbd6644
+>>>>>>> 79708b1980e9c9d2ac6c600ef40f819d55398db3
 	return jsonbuffer;
 }
 

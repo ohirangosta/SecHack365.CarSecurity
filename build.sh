@@ -22,6 +22,7 @@ fi
 
 if [ "$1" == "alphard" ]; then
 	rm ./can2ip-transfer
+<<<<<<< HEAD
 	gcc -lm -pthread -lrt -o can2ip-transfer can_gps2ip-transfer.c gps_module.c "$VID"
 elif [ "$1" == "corolla" ]; then
 	rm ./can2ip-transfer
@@ -29,6 +30,15 @@ elif [ "$1" == "corolla" ]; then
 elif [ "$1" == "aqua" ]; then
 	rm ./can2ip-transfer
 	gcc -lm -pthread -lrt -o can2ip-transfer can_gps2ip-transfer.c gps_module.c "$VID"
+=======
+	gcc -lm -pthread -lrt -o alphard2ip-transfer can_gps2ip-transfer.c gps_module.c "$VID"
+elif [ "$1" == "corolla" ]; then
+	rm ./can2ip-transfer
+	gcc -lm -pthread -lrt -o carrolla2ip-transfer can_gps2ip-transfer.c gps_module.c "$VID"
+elif [ "$1" == "aqua" ]; then
+	rm ./can2ip-transfer
+	gcc -lm -pthread -lrt -o aqua2ip-transfer can_gps2ip-transfer.c gps_module.c "$VID"
+>>>>>>> 79708b1980e9c9d2ac6c600ef40f819d55398db3
 elif [ "$1" == "debug" ]; then
 	rm ./can2ip-transfer.dbg
 	gcc -lm -pthread -lrt -o can2ip-transfer.dbg can_gps2ip-transfer.c gps_module.c -DDEBAG "$VID"
