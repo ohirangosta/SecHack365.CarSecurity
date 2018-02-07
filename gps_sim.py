@@ -16,7 +16,7 @@ if __name__ == '__main__':
       #It may take a second or two to get good data
       #print gpsd.fix.latitude,', ',gpsd.fix.longitude,'  Time: ',gpsd.utc
  
-      gps_send_data = str(123.123) + " " + str(321.321) + "\n"
+      gps_send_data = str(34.639606) + ":" + str(135.423169) + "\n"
       client.sendto(gps_send_data, (localhost, localport))
       print 'send packet : ', gps_send_data
       time.sleep(1)

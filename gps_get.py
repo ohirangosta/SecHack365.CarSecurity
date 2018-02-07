@@ -55,10 +55,10 @@ if __name__ == '__main__':
       print
       print 'sats        ' , gpsd.satellites
  
-      gps_send_data = str(gpsd.fix.latitude) + " " + str(gpsd.fix.longitude) + "\n"
+      gps_send_data = str(gpsd.fix.latitude) + ":" + str(gpsd.fix.longitude) + "\n"
       client.sendto(gps_send_data, (localhost, localport))
       print 'send packet : ', gps_send_data
-      time.sleep(7)
+      time.sleep(3)
  
   except (KeyboardInterrupt, SystemExit): #when you press ctrl+c
     print "\nKilling Thread..."

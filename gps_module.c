@@ -14,11 +14,20 @@ int gps_lock_flag = 0;
 
 #define BUF_SIZE 4096
 int parse_lati_long(char *buf) {
-	if ((gps.latitude = atof(strtok(buf, " ")))==0 ) {
+	char *c_lati, *c_long;
+	if ((c_lati=strtok(buf, ":")) == NULL ) {
+		perror("strtok");
+		return 1;
+	}
+	if ((gps.latitude = atof(c_lati)) == 0 ) {
 		perror("parse");
 		return 1;
 	}
-	if ((gps.longitude = atof(strtok(NULL, " ")))==0 ) {
+	if ((c_long=strtok(NULL, ":")) == NULL ) {
+		perror("strtok");
+		return 1;
+	}
+	if ((gps.longitude = atof(c_long)) == 0 ) {
 		perror("parse");
 		return 1;
 	}
