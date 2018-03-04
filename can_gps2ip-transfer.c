@@ -90,62 +90,7 @@ void sigterm(int signo)
 	running = 0;
 }
 
-#ifdef HA
-char *vehicle_id = "Alphard";
-//Honda Alphard Vehicle Speed
-#define ANALAZE_CANID1 "158"
-#define ANALAZE_PAY1_S 1
-#define ANALAZE_PAY1_E 2
-#define ANALAZE_PAY1_B 1.0
-
-//Honda Alphard Engine Speed
-#define ANALAZE_CANID2 "1DC"
-#define ANALAZE_PAY2_S 4
-#define ANALAZE_PAY2_E 4
-#define ANALAZE_PAY2_B 0.1
-#endif
-
-#ifdef CF
-char *vehicle_id = "Carrolla_Fielder";
-//Carrolla Vehicle Speed
-#define ANALAZE_CANID1 "0B4"
-#define ANALAZE_PAY1_S 10
-#define ANALAZE_PAY1_E 4
-#define ANALAZE_PAY1_B 0.01
-
-//Carrolla Engine Speed
-#define ANALAZE_CANID2 "1C4"
-#define ANALAZE_PAY2_S 0
-#define ANALAZE_PAY2_E 4
-#define ANALAZE_PAY2_B 1.0
-#endif
-
-#ifdef TA
-char *vehicle_id = "Toyota_Aqua";
-//Aqua Vehicle Speed
-#define ANALAZE_CANID1 "0B4"
-#define ANALAZE_PAY1_S 10
-#define ANALAZE_PAY1_E 4
-#define ANALAZE_PAY1_B 0.01
-
-//Aqua Engine Speed
-#define ANALAZE_CANID2 "1C4"
-#define ANALAZE_PAY2_S 0
-#define ANALAZE_PAY2_E 4
-#define ANALAZE_PAY2_B 1.0
-
-//Aqua Steering Angle
-#define ANALAZE_CANID3 "025"
-#define ANALAZE_PAY3_S 1
-#define ANALAZE_PAY3_E 3
-#define ANALAZE_PAY3_B 1.406
-
-//Aqua Brake Info
-#define ANALAZE_CANID4 "224"
-#define ANALAZE_PAY4_S 9
-#define ANALAZE_PAY4_E 3
-#define ANALAZE_PAY4_B 1.0
-#endif
+#include "CAN_ID_info.h"
 
 //CAN width for Band Width
 #define CAN_WIDTH 500000
@@ -173,7 +118,6 @@ char *Composejson (float speed, float rpm, float bandwidth, double latitude, dou
 	return jsonbuffer;
 }
 
-/* Payload of 1C4 0B4...etc */
 char *Createjsondata (float bandwidth, char *ret_json) {
 	char jsonbuffer[500];
 	if (gps_lock_flag == 1) {
